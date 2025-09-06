@@ -1,0 +1,140 @@
+{
+  "name": "ai-ide-matrix-client-plugin",
+  "displayName": "Matrix Client",
+  "description": "Secure, decentralized messaging integration using Matrix protocol",
+  "version": "0.1.0",
+  "publisher": "ai-ide",
+  "appId": "matrix-client",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "matrix",
+    "messaging",
+    "decentralized",
+    "communication",
+    "element",
+    "chat"
+  ],
+  "main": "./extension.js",
+  "activationEvents": [
+    "onCommand:matrix-client.connect",
+    "onCommand:matrix-client.disconnect",
+    "onCommand:matrix-client.sendMessage",
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "matrix-client.connect",
+        "title": "Connect to Matrix",
+        "category": "Matrix Client"
+      },
+      {
+        "command": "matrix-client.disconnect",
+        "title": "Disconnect from Matrix",
+        "category": "Matrix Client"
+      },
+      {
+        "command": "matrix-client.sendMessage",
+        "title": "Send Message",
+        "category": "Matrix Client"
+      },
+      {
+        "command": "matrix-client.joinRoom",
+        "title": "Join Room",
+        "category": "Matrix Client"
+      },
+      {
+        "command": "matrix-client.leaveRoom",
+        "title": "Leave Room",
+        "category": "Matrix Client"
+      },
+      {
+        "command": "matrix-client.showSettings",
+        "title": "Show Settings",
+        "category": "Matrix Client"
+      }
+    ],
+    "views": {
+      "explorer": [
+        {
+          "id": "matrix-client.chatView",
+          "name": "Matrix Chat",
+          "when": "true"
+        },
+        {
+          "id": "matrix-client.roomsView",
+          "name": "Rooms",
+          "when": "true"
+        }
+      ]
+    },
+    "ui": {
+      "main": {
+        "component": "MatrixClientMain",
+        "file": "ui/matrix-ui.js"
+      },
+      "chat": {
+        "component": "MatrixChatPanel",
+        "file": "ui/chat.js"
+      },
+      "rooms": {
+        "component": "MatrixRoomsPanel",
+        "file": "ui/rooms.js"
+      },
+      "settings": {
+        "component": "MatrixSettingsPanel",
+        "file": "ui/settings.js"
+      }
+    },
+    "configuration": {
+      "title": "Matrix Client",
+      "properties": {
+        "matrix-client.homeserver": {
+          "type": "string",
+          "default": "https://matrix.org",
+          "description": "Matrix homeserver URL"
+        },
+        "matrix-client.accessToken": {
+          "type": "string",
+          "default": "",
+          "description": "Matrix access token"
+        },
+        "matrix-client.userId": {
+          "type": "string",
+          "default": "",
+          "description": "Matrix user ID"
+        },
+        "matrix-client.deviceId": {
+          "type": "string",
+          "default": "ai-ide-matrix-client",
+          "description": "Device ID for Matrix client"
+        },
+        "matrix-client.autoConnect": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically connect on startup"
+        },
+        "matrix-client.showNotifications": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show desktop notifications for new messages"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "echo 'No compilation needed for this extension'"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/ai-ide-matrix-client-plugin"
+  }
+}
