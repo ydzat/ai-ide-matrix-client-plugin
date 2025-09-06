@@ -1,0 +1,78 @@
+# Sensitive user data
+userdata
+*.userdata
+user-data
+user_data
+credentials
+*.credentials
+auth
+*.auth
+
+# Access tokens and session data
+*.token
+*.session
+access_token*
+session_*
+auth_*
+
+# Configuration files with sensitive data
+config.json
+*.config.json
+settings.json
+*.settings.json
+.env
+.env.*
+
+# Log files
+*.log
+logs/
+log/
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# Cache files
+*.cache
+cache/
+.cache/
+
+# Node.js dependencies (if any)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Test files with sensitive data
+test-credentials*
+test-auth*
+test-userdata*
+
+# Any file containing passwords or tokens
+*password*
+*token*
+*secret*
+*key*
