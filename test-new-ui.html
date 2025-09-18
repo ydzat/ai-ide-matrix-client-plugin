@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrix Client - New Implementation Test</title>
+    <style>
+        :root {
+            /* Color tokens */
+            --bg-primary: #1e1e1e;
+            --bg-secondary: #2d2d2d;
+            --bg-tertiary: #3c3c3c;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --text-muted: #999999;
+            --border-primary: #404040;
+            --border-secondary: #555555;
+            --border-focus: #007acc;
+            --interactive-primary: #007acc;
+            --interactive-hover: #005a9e;
+            --status-success: #4caf50;
+            --status-warning: #ff9800;
+            --status-error: #f44336;
+            --text-inverse: #ffffff;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow: hidden;
+        }
+
+        #container {
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-size: 18px;
+            color: var(--text-secondary);
+        }
+
+        .error {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            flex-direction: column;
+            color: var(--status-error);
+        }
+
+        .error h2 {
+            margin-bottom: 16px;
+        }
+
+        .error button {
+            background: var(--interactive-primary);
+            color: var(--text-inverse);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .error button:hover {
+            background: var(--interactive-hover);
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div class="loading">
+            <div>Loading Matrix Client...</div>
+        </div>
+    </div>
+
+    <script>
+        console.log('Starting Matrix Client test...');
+
+        // Initialize the Matrix Client
+        async function initializeMatrixClient() {
+            try {
+                const container = document.getElementById('container');
+                
+                // Clear loading message
+                container.innerHTML = '';
+
+                // Load the new MatrixClientMain
+                const script = document.createElement('script');
+                script.src = 'http://localhost:8000/extensions/ai-ide.matrix-client-plugin/ui-new/MatrixClientMain.js';
+                script.type = 'module';
+                
+                script.onload = async () => {
+                    console.log('MatrixClientMain script loaded');
+                    
+                    // Wait a bit for the module to be available
+                    setTimeout(async () => {
+                        if (window.MatrixClientMain) {
+                            console.log('MatrixClientMain found, initializing...');
+                            
+                            try {
+                                await window.MatrixClientMain.onMount(container, {});
+                                console.log('MatrixClientMain initialized successfully');
+                            } catch (error) {
+                                console.error('Failed to initialize MatrixClientMain:', error);
+                                showError('Failed to initialize Matrix Client: ' + error.message);
+                            }
+                        } else {
+                            console.error('MatrixClientMain not found in window object');
+                            console.log('Available window properties:', Object.keys(window).filter(k => k.includes('Matrix')));
+                            showError('MatrixClientMain not found. Check console for details.');
+                        }
+                    }, 500);
+                };
+
+                script.onerror = (error) => {
+                    console.error('Failed to load MatrixClientMain script:', error);
+                    showError('Failed to load Matrix Client script. Make sure the server is running on localhost:8000');
+                };
+
+                document.head.appendChild(script);
+
+            } catch (error) {
+                console.error('Error during initialization:', error);
+                showError('Initialization error: ' + error.message);
+            }
+        }
+
+        function showError(message) {
+            const container = document.getElementById('container');
+            container.innerHTML = `
+                <div class="error">
+                    <h2>Error</h2>
+                    <p>${message}</p>
+                    <button onclick="location.reload()">Reload</button>
+                </div>
+            `;
+        }
+
+        // Start initialization when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, starting initialization...');
+            initializeMatrixClient();
+        });
+
+        // Handle page unload
+        window.addEventListener('beforeunload', () => {
+            if (window.MatrixClientMainInstance && window.MatrixClientMainInstance.destroy) {
+                window.MatrixClientMainInstance.destroy().catch(console.error);
+            }
+        });
+    </script>
+</body>
+</html>
