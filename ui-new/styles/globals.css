@@ -1,5 +1,51 @@
 /* Global Styles for Matrix Client */
 
+/* CSS Variables - Dark Theme */
+:root {
+  /* Background Colors */
+  --bg-primary: #1e1e1e;
+  --bg-secondary: #252526;
+  --bg-tertiary: #2d2d30;
+  --bg-elevated: #3c3c3c;
+  --bg-hover: #2a2d2e;
+
+  /* Text Colors */
+  --text-primary: #cccccc;
+  --text-secondary: #969696;
+  --text-tertiary: #6a6a6a;
+  --text-inverse: #ffffff;
+  --text-link: #4fc3f7;
+  --text-link-hover: #29b6f6;
+
+  /* Border Colors */
+  --border-primary: #3e3e42;
+  --border-secondary: #2d2d30;
+  --border-focus: #007acc;
+
+  /* Interactive Colors */
+  --interactive-primary: #0e639c;
+  --interactive-primary-hover: #1177bb;
+  --interactive-secondary: #5a5a5a;
+
+  /* Status Colors */
+  --status-success: #4caf50;
+  --status-warning: #ff9800;
+  --status-error: #f44336;
+  --status-info: #2196f3;
+
+  /* Matrix-specific Colors */
+  --matrix-online: #4caf50;
+  --matrix-away: #ff9800;
+  --matrix-offline: #757575;
+  --matrix-encrypted: #4caf50;
+  --matrix-unverified: #ff9800;
+  --matrix-blocked: #f44336;
+
+  /* Fonts */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+}
+
 /* CSS Reset and Base Styles */
 *,
 *::before,
@@ -1922,6 +1968,87 @@ a:hover {
   align-items: center;
   padding: 12px 0;
   gap: 8px;
+  position: relative;
+}
+
+/* Activity Bar Items */
+.activity-item {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--text-secondary);
+  position: relative;
+}
+
+.activity-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.activity-item.active {
+  background: var(--interactive-primary);
+  color: var(--text-inverse);
+}
+
+.activity-item.active::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 24px;
+  background: var(--text-inverse);
+  border-radius: 0 2px 2px 0;
+}
+
+/* User Avatar in Activity Bar */
+.user-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--interactive-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 12px;
+  position: relative;
+}
+
+.user-avatar:hover {
+  background: var(--interactive-primary-hover);
+  transform: scale(1.05);
+}
+
+.user-initials {
+  color: var(--text-inverse);
+  font-size: 16px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.user-avatar-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Activity Bar Bottom Section */
+.activity-bar-bottom {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-primary);
 }
 
 /* Left Panel Improvements */
@@ -1934,6 +2061,150 @@ a:hover {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+/* Sidebar Header */
+.sidebar-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--border-primary);
+  background: var(--bg-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 56px;
+}
+
+.sidebar-header h2 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Room Sections */
+.room-sections {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+.room-section {
+  margin-bottom: 8px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.section-header:hover {
+  color: var(--text-primary);
+}
+
+.section-header .section-count {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+/* Room List Items */
+.room-item {
+  display: flex;
+  align-items: center;
+  padding: 6px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 0;
+  position: relative;
+}
+
+.room-item:hover {
+  background: var(--bg-hover);
+}
+
+.room-item.active {
+  background: var(--interactive-primary);
+  color: var(--text-inverse);
+}
+
+.room-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--text-inverse);
+}
+
+.room-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  margin-right: 12px;
+  background: var(--bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  flex-shrink: 0;
+}
+
+.room-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.room-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+.room-item.active .room-name {
+  color: var(--text-inverse);
+}
+
+.room-preview {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.room-item.active .room-preview {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.room-badge {
+  background: var(--interactive-primary);
+  color: var(--text-inverse);
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  margin-left: 8px;
+  flex-shrink: 0;
 }
 
 /* Main Content Improvements */

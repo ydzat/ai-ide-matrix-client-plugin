@@ -38,7 +38,9 @@ const MatrixClientMain = {
 
     // Prevent multiple initializations
     if (this.isInitialized && !this.isDestroyed) {
-      console.warn('MatrixClientMain already initialized, skipping');
+      console.log('MatrixClientMain already initialized, updating container reference');
+      this.container = container;
+      this.props = props;
       return;
     }
 
@@ -336,37 +338,65 @@ const MatrixClientMain = {
     const spacesSection = this.container.querySelector('#spacesSection');
     if (!spacesSection) return;
 
-    // Clear existing spaces (except Home and Create)
-    const existingSpaces = spacesSection.querySelectorAll('.space-item:not([data-space="home"]):not([data-space="create"])');
-    existingSpaces.forEach(space => space.remove());
+    // Clear existing spaces
+    spacesSection.innerHTML = '';
 
-    // Add real spaces
-    this.spaces.forEach(space => {
-      const spaceElement = document.createElement('div');
-      spaceElement.className = 'space-item';
-      spaceElement.dataset.space = space.room_id || space.id || 'unknown';
-      spaceElement.title = space.display_name || space.name || space.room_id || space.id || 'Unknown Space';
+    // Add real spaces or mock OnlyForTest space if no spaces found
+    if (this.spaces && this.spaces.length > 0) {
+      this.spaces.forEach(space => {
+        const spaceElement = document.createElement('div');
+        spaceElement.className = 'activity-item';
+        spaceElement.dataset.space = space.room_id || space.id || 'unknown';
+        spaceElement.title = space.display_name || space.name || space.room_id || space.id || 'Unknown Space';
 
-      const spaceAvatar = document.createElement('div');
-      spaceAvatar.className = 'space-avatar';
+        const spaceIcon = document.createElement('div');
+        spaceIcon.className = 'activity-icon';
 
-      if (space.avatar_url) {
-        const httpUrl = this.convertMxcToHttp(space.avatar_url);
-        spaceAvatar.style.backgroundImage = `url(${httpUrl})`;
-        spaceAvatar.style.backgroundSize = 'cover';
-        spaceAvatar.style.backgroundPosition = 'center';
-      } else {
-        // Use first letter of space name
-        const spaceName = space.display_name || space.name || space.room_id || space.id || 'Space';
-        spaceAvatar.textContent = spaceName.charAt(0).toUpperCase();
-      }
+        if (space.avatar_url) {
+          const httpUrl = this.convertMxcToHttp(space.avatar_url);
+          spaceIcon.style.backgroundImage = `url(${httpUrl})`;
+          spaceIcon.style.backgroundSize = 'cover';
+          spaceIcon.style.backgroundPosition = 'center';
+          spaceIcon.style.borderRadius = '6px';
+        } else {
+          // Use first letter of space name
+          const spaceName = space.display_name || space.name || space.room_id || space.id || 'Space';
+          spaceIcon.textContent = spaceName.charAt(0).toUpperCase();
+          spaceIcon.style.backgroundColor = 'var(--interactive-primary)';
+          spaceIcon.style.color = 'var(--text-inverse)';
+          spaceIcon.style.borderRadius = '6px';
+          spaceIcon.style.display = 'flex';
+          spaceIcon.style.alignItems = 'center';
+          spaceIcon.style.justifyContent = 'center';
+          spaceIcon.style.fontSize = '14px';
+          spaceIcon.style.fontWeight = '600';
+        }
 
-      spaceElement.appendChild(spaceAvatar);
+        spaceElement.appendChild(spaceIcon);
+        spacesSection.appendChild(spaceElement);
+      });
+    } else {
+      // Add mock OnlyForTest space since no spaces were found
+      const mockSpace = document.createElement('div');
+      mockSpace.className = 'activity-item';
+      mockSpace.dataset.space = 'onlyfortest';
+      mockSpace.title = 'OnlyForTest';
 
-      // Insert before the "Create" button
-      const createButton = spacesSection.querySelector('[data-space="create"]');
-      spacesSection.insertBefore(spaceElement, createButton);
-    });
+      const mockIcon = document.createElement('div');
+      mockIcon.className = 'activity-icon';
+      mockIcon.textContent = 'O';
+      mockIcon.style.backgroundColor = 'var(--interactive-primary)';
+      mockIcon.style.color = 'var(--text-inverse)';
+      mockIcon.style.borderRadius = '6px';
+      mockIcon.style.display = 'flex';
+      mockIcon.style.alignItems = 'center';
+      mockIcon.style.justifyContent = 'center';
+      mockIcon.style.fontSize = '14px';
+      mockIcon.style.fontWeight = '600';
+
+      mockSpace.appendChild(mockIcon);
+      spacesSection.appendChild(mockSpace);
+    }
   },
 
   // Set up event listeners
@@ -591,27 +621,34 @@ const MatrixClientMain = {
       <div class="matrix-main-layout">
         <!-- Activity Bar (Left sidebar with spaces) -->
         <div class="activity-bar">
-          <div class="user-section">
+          <div class="activity-top">
+            <!-- User Avatar -->
             <div class="user-avatar" id="userAvatar" title="Click for user menu">
               <span id="userInitials" class="user-initials">${this.getUserInitials()}</span>
             </div>
 
-            <div class="spaces-section" id="spacesSection">
-              <div class="space-item active" data-space="home" title="Home">
-                <div class="space-avatar" id="homeSpaceIcon"></div>
-              </div>
-              <div class="space-item" data-space="create" title="Create a space">
-                <div class="space-avatar" id="createSpaceIcon"></div>
-              </div>
+            <!-- Home Space -->
+            <div class="activity-item active" data-space="home" title="Home">
+              <div class="activity-icon" id="homeSpaceIcon"></div>
             </div>
 
-            <div class="activity-section">
-              <div class="activity-item" id="threadsActivity" title="Threads activity">
-                <div class="activity-icon" id="threadsIcon"></div>
-              </div>
-              <div class="activity-item" id="quickSettings" title="Quick settings">
-                <div class="activity-icon" id="settingsIcon"></div>
-              </div>
+            <!-- Dynamic Spaces -->
+            <div class="spaces-section" id="spacesSection">
+              <!-- OnlyForTest space will be added here dynamically -->
+            </div>
+
+            <!-- Create Space -->
+            <div class="activity-item" data-space="create" title="Create a space">
+              <div class="activity-icon" id="createSpaceIcon"></div>
+            </div>
+          </div>
+
+          <div class="activity-bar-bottom">
+            <div class="activity-item" id="threadsActivity" title="Threads activity">
+              <div class="activity-icon" id="threadsIcon"></div>
+            </div>
+            <div class="activity-item" id="quickSettings" title="Quick settings">
+              <div class="activity-icon" id="settingsIcon"></div>
             </div>
           </div>
         </div>
@@ -1082,7 +1119,7 @@ const MatrixClientMain = {
       <div class="panel-header">
         <h3>Room Information</h3>
         <button class="close-button" id="closeRightPanel">
-          <span id="closePanelIcon"></span>
+          <span class="close-icon">×</span>
         </button>
       </div>
       <div class="panel-body">
@@ -1151,20 +1188,17 @@ const MatrixClientMain = {
       </div>
     `;
 
-    // Initialize close icon
+    // Initialize icons
     setTimeout(() => {
-      const closeIcon = rightPanelContent.querySelector('#closePanelIcon');
       const inviteIcon = rightPanelContent.querySelector('#inviteIcon');
       const roomSettingsIcon = rightPanelContent.querySelector('#roomSettingsIcon');
       const leaveIcon = rightPanelContent.querySelector('#leaveIcon');
 
       if (this.radixIcons) {
-        if (closeIcon) closeIcon.appendChild(this.radixIcons.createIcon('Cross2Icon'));
         if (inviteIcon) inviteIcon.appendChild(this.radixIcons.createIcon('PersonIcon'));
         if (roomSettingsIcon) roomSettingsIcon.appendChild(this.radixIcons.createIcon('GearIcon'));
         if (leaveIcon) leaveIcon.appendChild(this.radixIcons.createIcon('ExitIcon'));
       } else {
-        if (closeIcon) closeIcon.textContent = '✕';
         if (inviteIcon) inviteIcon.textContent = '👤';
         if (roomSettingsIcon) roomSettingsIcon.textContent = '⚙️';
         if (leaveIcon) leaveIcon.textContent = '🚪';
@@ -1422,13 +1456,36 @@ const MatrixClientMain = {
   },
 
   // Plugin lifecycle methods
-  onMount(container, props = {}) {
+  async onMount(container, props = {}) {
     console.log('MatrixClientMain.onMount called');
 
     // Ensure we have a valid container
     if (!container) {
       console.error('onMount called with null container');
       return Promise.reject(new Error('Container is required'));
+    }
+
+    // If already initialized and authenticated, just restore the container and update UI
+    if (this.isInitialized && !this.isDestroyed && this.apiClient && this.apiClient.isAuthenticated) {
+      console.log('Restoring existing authenticated session...');
+      this.container = container;
+      this.props = props;
+
+      // Load component managers if not already loaded
+      if (!this.roomManager || !this.userManager) {
+        await this.loadComponentManagers();
+      }
+
+      // Update UI immediately with existing data
+      this.updateUI();
+
+      // Re-initialize icons and event listeners
+      setTimeout(() => {
+        this.initializeIcons();
+        this.setupMainViewEventListeners();
+      }, 100);
+
+      return Promise.resolve();
     }
 
     // Prevent multiple mounts on the same instance
@@ -1454,12 +1511,23 @@ const MatrixClientMain = {
   },
 
   onUnmount(container, props = {}) {
-    console.log('MatrixClientMain.onUnmount called - starting cleanup');
+    console.log('MatrixClientMain.onUnmount called - preserving session');
 
-    // Call destroy synchronously to ensure proper cleanup
-    return this.destroy().catch(error => {
-      console.error('Error during unmount cleanup:', error);
-    });
+    // Don't destroy the component on unmount - this is just a page switch
+    // Only clear the container reference to prevent memory leaks
+    if (this.container === container) {
+      this.container = null;
+    }
+
+    // Keep the session and all data intact
+    // The component will be re-initialized when mounted again
+    console.log('MatrixClientMain.onUnmount completed - session preserved');
+  },
+
+  // Method for true plugin uninstall/deactivation
+  async forceDestroy() {
+    console.log('MatrixClientMain.forceDestroy called - clearing all data');
+    return this.destroy();
   }
 };
 

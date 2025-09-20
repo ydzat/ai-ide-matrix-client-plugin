@@ -16,10 +16,15 @@
 
   // Display rooms organized by space
   displayRoomsInSpace(rooms, currentSpaceId = 'home') {
+    console.log('displayRoomsInSpace called with:', { rooms, currentSpaceId });
+
     const peopleList = this.matrixClient.container.querySelector('#peopleList');
     const roomsList = this.matrixClient.container.querySelector('#roomsList');
 
-    if (!peopleList || !roomsList) return;
+    if (!peopleList || !roomsList) {
+      console.warn('peopleList or roomsList not found');
+      return;
+    }
 
     // Filter rooms based on current space
     let filteredRooms = rooms;
@@ -31,9 +36,22 @@
       }
     }
 
+    console.log('Filtered rooms:', filteredRooms);
+
     // Separate direct messages (people) from rooms
-    const directMessages = filteredRooms.filter(room => this.isDirectMessage(room));
-    const groupRooms = filteredRooms.filter(room => !this.isDirectMessage(room));
+    const directMessages = filteredRooms.filter(room => {
+      const isDM = this.isDirectMessage(room);
+      console.log(`Room ${this.getRoomDisplayName(room)} (${room.room_id}) is DM: ${isDM}`);
+      return isDM;
+    });
+    const groupRooms = filteredRooms.filter(room => {
+      const isDM = this.isDirectMessage(room);
+      console.log(`Room ${this.getRoomDisplayName(room)} (${room.room_id}) is Group Room: ${!isDM}`);
+      return !isDM;
+    });
+
+    console.log('Direct messages:', directMessages.length, directMessages.map(r => this.getRoomDisplayName(r)));
+    console.log('Group rooms:', groupRooms.length, groupRooms.map(r => this.getRoomDisplayName(r)));
 
     // Display people (direct messages)
     if (directMessages.length > 0) {
@@ -160,12 +178,44 @@
 
   // Check if a room is a direct message
   isDirectMessage(room) {
-    // Check various indicators for direct messages
-    return room.is_direct ||
-           room.type === 'dm' ||
-           room.type === 'm.room.direct' ||
-           (room.join_rules === 'invite' && room.member_count <= 2) ||
-           (room.room_id && !room.canonical_alias && room.member_count <= 2);
+    console.log('Checking if room is DM:', {
+      room_id: room.room_id,
+      name: room.name,
+      display_name: room.display_name,
+      canonical_alias: room.canonical_alias,
+      is_direct: room.is_direct,
+      type: room.type,
+      join_rules: room.join_rules,
+      member_count: room.member_count,
+      computed_name: this.getRoomDisplayName(room)
+    });
+
+    // First check explicit direct message indicators
+    if (room.is_direct || room.type === 'dm' || room.type === 'm.room.direct') {
+      console.log('Room is DM due to explicit indicators');
+      return true;
+    }
+
+    // If room has a canonical alias (like #test:server.com), it's not a DM
+    if (room.canonical_alias) {
+      console.log('Room is not DM due to canonical alias');
+      return false;
+    }
+
+    // If room has a name like "Test Room", it's definitely not a DM
+    const roomName = this.getRoomDisplayName(room);
+    if (roomName && (roomName.toLowerCase().includes('room') ||
+                     roomName.toLowerCase().includes('chat') ||
+                     roomName.toLowerCase().includes('group') ||
+                     roomName.toLowerCase().includes('channel'))) {
+      console.log('Room is not DM due to name containing room/chat/group/channel');
+      return false;
+    }
+
+    // Only consider it a DM if it's invite-only AND has exactly 2 members
+    const isDM = room.join_rules === 'invite' && room.member_count === 2;
+    console.log(`Room DM status: ${isDM} (join_rules: ${room.join_rules}, member_count: ${room.member_count})`);
+    return isDM;
   }
 
   // Format time for display
@@ -371,9 +421,18 @@
       console.log('Loading members for room:', this.matrixClient.currentRoom);
       const response = await this.matrixClient.apiClient.getRoomMembers(this.matrixClient.currentRoom);
       console.log('Members API response:', response);
-      
+
       if (response && response.success) {
-        this.displayRoomMembers(response.data || response.members || []);
+        // Handle different response formats
+        let membersData = response.data || response.members || response.chunk || [];
+
+        // If response.data is an object with chunk property
+        if (response.data && response.data.chunk) {
+          membersData = response.data.chunk;
+        }
+
+        console.log('Processing members data:', membersData);
+        this.displayRoomMembers(membersData);
       } else {
         throw new Error(response?.error || 'Failed to load members');
       }
@@ -394,26 +453,51 @@
 
   // Display room members
   displayRoomMembers(members) {
+    console.log('displayRoomMembers called with:', members);
+
     const rightPanelContent = this.matrixClient.container.querySelector('#rightPanelContent');
-    if (!rightPanelContent) return;
-
-    const panelBody = rightPanelContent.querySelector('.panel-body');
-    if (!panelBody) return;
-
-    // Ensure members is an array
-    const membersList = Array.isArray(members) ? members : 
-                       (members && members.chunk) ? members.chunk :
-                       (members && typeof members === 'object') ? Object.values(members) : [];
-
-    if (membersList.length === 0) {
-      panelBody.innerHTML = '<div class="empty-state">No members found</div>';
+    if (!rightPanelContent) {
+      console.warn('rightPanelContent not found');
       return;
     }
 
-    // Group members by power level or status
-    const admins = membersList.filter(m => m.power_level >= 100);
-    const moderators = membersList.filter(m => m.power_level >= 50 && m.power_level < 100);
-    const regularMembers = membersList.filter(m => m.power_level < 50);
+    const panelBody = rightPanelContent.querySelector('.panel-body');
+    if (!panelBody) {
+      console.warn('panelBody not found');
+      return;
+    }
+
+    // Ensure members is an array and handle different data formats
+    let membersList = [];
+
+    if (Array.isArray(members)) {
+      membersList = members;
+    } else if (members && members.chunk && Array.isArray(members.chunk)) {
+      membersList = members.chunk;
+    } else if (members && typeof members === 'object') {
+      // Try to extract members from object
+      membersList = Object.values(members);
+    }
+
+    console.log('Processed membersList:', membersList);
+
+    if (membersList.length === 0) {
+      panelBody.innerHTML = `
+        <div class="empty-state">
+          <h3>No members found</h3>
+          <p>Unable to load room members</p>
+          <button class="action-button secondary" onclick="window.MatrixClientMainInstance.roomManager.showRoomMembers()">Retry</button>
+        </div>
+      `;
+      return;
+    }
+
+    // Group members by power level or status (with fallback for missing power_level)
+    const admins = membersList.filter(m => (m.power_level || 0) >= 100);
+    const moderators = membersList.filter(m => (m.power_level || 0) >= 50 && (m.power_level || 0) < 100);
+    const regularMembers = membersList.filter(m => (m.power_level || 0) < 50);
+
+    console.log('Member groups:', { admins: admins.length, moderators: moderators.length, regular: regularMembers.length });
 
     let membersHtml = '';
 
